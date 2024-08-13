@@ -1,0 +1,16 @@
+
+
+
+
+git clone https://github.com/infiniflow/ragflow.git
+cd ragflow/
+docker build -t infiniflow/ragflow:dev .
+cd ragflow/docker
+chmod +x ./entrypoint.sh
+docker compose up -d
+
+
+
+app-aU20ao5ZFPkPVa0c7BxTIOc5
+
+https://api.dify.ai/v1
