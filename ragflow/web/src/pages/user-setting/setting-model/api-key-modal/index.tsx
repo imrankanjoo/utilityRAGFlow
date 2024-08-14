@@ -39,8 +39,11 @@ const ApiKeyModal = ({
 
   useEffect(() => {
     if (visible) {
-      form.setFieldValue('api_key', initialValue);
-    }
+      form.setFieldsValue({
+        api_key: initialValue,
+        base_url: llmFactory === 'UtilityAI' ? 'https://api.dify.ai/v1' : 'https://api.openai.com/v1',
+      });
+        }
   }, [initialValue, form, visible]);
 
   return (
@@ -74,8 +77,8 @@ const ApiKeyModal = ({
             name="base_url"
             tooltip={t('baseUrlTip')}
           >
-            <Input placeholder="https://api.openai.com/v1" />
-          </Form.Item>
+            <Input placeholder={llmFactory === 'UtilityAI' ? 'https://api.dify.ai/v1' : 'https://api.openai.com/v1'} />
+            </Form.Item>
         )}
         {llmFactory?.toLowerCase() === 'Minimax'.toLowerCase() && (
           <Form.Item<FieldType> label={'Group ID'} name="group_id">

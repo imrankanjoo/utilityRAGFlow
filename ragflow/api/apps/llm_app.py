@@ -23,6 +23,7 @@ from api.utils.api_utils import get_json_result
 from rag.llm import EmbeddingModel, ChatModel, RerankModel,CvModel
 import requests
 
+# previous code--------------------------------
 @manager.route('/factories', methods=['GET'])
 @login_required
 def factories():
@@ -32,7 +33,7 @@ def factories():
     except Exception as e:
         return server_error_response(e)
 
-
+     
 @manager.route('/set_api_key', methods=['POST'])
 @login_required
 @validate_request("llm_factory", "api_key")
