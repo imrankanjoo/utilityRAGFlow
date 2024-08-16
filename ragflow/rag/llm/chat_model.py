@@ -28,7 +28,7 @@ import os
 import json
 import requests
 import asyncio
-
+#previous code------------------------------
 class Base(ABC):
     def __init__(self, key, model_name, base_url):
         self.client = OpenAI(api_key=key, base_url=base_url)
@@ -49,7 +49,6 @@ class Base(ABC):
             return ans, response.usage.total_tokens
         except openai.APIError as e:
             return "**ERROR**: " + str(e), 0
-
     def chat_streamly(self, system, history, gen_conf):
         if system:
             history.insert(0, {"role": "system", "content": system})
@@ -83,7 +82,77 @@ class Base(ABC):
             yield ans + "\n**ERROR**: " + str(e)
 
         yield total_tokens
+#--------------------------------------UtitlityAI code
+class UtilityAIChat:
+    def __init__(self, key, model_name, base_url):
+        if not base_url:
+            raise ValueError("Hello- url cannot be None"+" "+ model_name+ " "+ key)
+        self.api_key = key
+        self.base_url = base_url
+        self.model_name = model_name
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"}
+       
+    def chat(self, system, history, gen_conf):
+        if system:
+            history.insert(0, {"role": "system", "content": system})
+        payload = {
+            "query": history[-1]['content'],  # The user's query
+            "inputs": gen_conf.get("inputs", {}),  # Additional inputs
+            "response_mode": gen_conf.get("response_mode", "blocking"),  # blocking or streaming
+            "user": gen_conf.get("user", "anonymous"),  # User ID
+            "conversation_id": gen_conf.get("conversation_id", "")  # For session persistence
+        }
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat-messages",
+                headers=self.headers,
+                data=json.dumps(payload)
+            )
+            response.raise_for_status()
+            result = response.json()
+            if 'answer' in result:
+                answer = result.get("answer", "").strip()
+                chatPass=True
+            return chatPass, answer
+            #return chatPass, answer, result.get("usage", {}).get("total_tokens", 0)
 
+        except requests.exceptions.RequestException as e:
+            return f"**ERROR**: {str(e)}", 0
+
+    def chat_streamly(self, system, history, gen_conf):
+        if system:
+            history.insert(0, {"role": "system", "content": system})
+        payload = {
+            "query": history[-1]['content'],
+            "inputs": gen_conf.get("inputs", {}),
+            "response_mode": "streaming",
+            "user": gen_conf.get("user", "anonymous"),
+            "conversation_id": gen_conf.get("conversation_id", "")
+        }
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat-messages",
+                headers=self.headers,
+                data=json.dumps(payload),
+                stream=True
+            )
+            response.raise_for_status()
+            answer = ""
+            for chunk in response.iter_lines():
+                if chunk:
+                    data = json.loads(chunk.decode('utf-8')[6:])
+                    if 'answer' in data:
+                        answer += data['answer']
+                        yield answer
+
+        except requests.exceptions.RequestException as e:
+            yield f"**ERROR**: {str(e)}"
+
+        yield answer
+
+# Previous code------------------------------------------------
 
 class GptTurbo(Base):
     def __init__(self, key, model_name="gpt-3.5-turbo", base_url="https://api.openai.com/v1"):

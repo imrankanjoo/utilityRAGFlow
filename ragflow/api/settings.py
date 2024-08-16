@@ -59,10 +59,8 @@ USE_REGISTRY = get_base_config("use_registry")
 
 default_llm = {
     "UtilityAI": {
-        "chat_model": "UtilityAI-3.5-turbo",
-        "embedding_model": "UtilityAI-text-embedding-ada-00",
-        "image2text_model": "Utility-4-vision-preview",
-        "asr_model": "UtilityAI-whisper-1",
+        "chat_model": "Utility-dify-chat",
+        "embedding_model": "Utility-embedding-ada-002",
     },
     "Tongyi-Qianwen": {
         "chat_model": "qwen-plus",

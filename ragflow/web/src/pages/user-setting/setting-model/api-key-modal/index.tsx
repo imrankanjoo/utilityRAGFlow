@@ -38,6 +38,8 @@ const ApiKeyModal = ({
   };
 
   useEffect(() => {
+    console.log('llmFactory:', llmFactory); // Add this to debug
+
     if (visible) {
       form.setFieldsValue({
         api_key: initialValue,

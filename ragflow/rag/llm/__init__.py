@@ -37,7 +37,8 @@ EmbeddingModel = {
     "Gemini": GeminiEmbed,
     "NVIDIA": NvidiaEmbed,
     "LM-Studio": LmStudioEmbed,
-    "OpenAI-API-Compatible": OpenAI_APIEmbed
+    "OpenAI-API-Compatible": OpenAI_APIEmbed,
+    "UtilityAI": UtilityAIChat  # Add UtilityAI to handle the 'UtilityAI' model
 }
 
 
@@ -55,7 +56,7 @@ CvModel = {
     "NVIDIA": NvidiaCV,
     "LM-Studio": LmStudioCV,
     "StepFun":StepFunCV,
-    "OpenAI-API-Compatible": OpenAI_APICV
+    "OpenAI-API-Compatible": OpenAI_APICV,
 }
 
 
@@ -81,7 +82,9 @@ ChatModel = {
     "StepFun": StepFunChat,
     "NVIDIA": NvidiaChat,
     "LM-Studio": LmStudioChat,
-    "OpenAI-API-Compatible": OpenAI_APIChat
+    "OpenAI-API-Compatible": OpenAI_APIChat,
+    "UtilityAI": UtilityAIChat  # Add UtilityAI to handle the 'UtilityAI' model
+
 }
 
 

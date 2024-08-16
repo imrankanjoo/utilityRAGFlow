@@ -20,7 +20,7 @@ from api.utils.api_utils import server_error_response, get_data_error_result, va
 from api.db import StatusEnum, LLMType
 from api.db.db_models import TenantLLM
 from api.utils.api_utils import get_json_result
-from rag.llm import EmbeddingModel, ChatModel, RerankModel,CvModel
+from rag.llm import EmbeddingModel, ChatModel, RerankModel,CvModel, UtilityAIChat
 import requests
 
 # previous code--------------------------------
@@ -33,7 +33,6 @@ def factories():
     except Exception as e:
         return server_error_response(e)
 
-     
 @manager.route('/set_api_key', methods=['POST'])
 @login_required
 @validate_request("llm_factory", "api_key")
@@ -43,39 +42,80 @@ def set_api_key():
     chat_passed, embd_passed, rerank_passed = False, False, False
     factory = req["llm_factory"]
     msg = ""
+
     for llm in LLMService.query(fid=factory):
         if not embd_passed and llm.model_type == LLMType.EMBEDDING.value:
-            mdl = EmbeddingModel[factory](
-                req["api_key"], llm.llm_name, base_url=req.get("base_url"))
-            try:
-                arr, tc = mdl.encode(["Test if the api key is available"])
-                if len(arr[0]) == 0 or tc == 0:
-                    raise Exception("Fail")
-                embd_passed = True
-            except Exception as e:
-                msg += f"\nFail to access embedding model({llm.llm_name}) using this api key." + str(e)
+            if llm.llm_name == "Utility-embedding-ada-002":
+                mdl = UtilityAIChat(req["api_key"], llm.llm_name, base_url=req.get("base_url"))
+                try:
+                    # Sending a sample query to chat model
+                    query_content = "What are the specs of the iPhone 13 Pro Max?"
+                    system_message = "Please provide detailed specifications."
+                    history = [{"role": "system", "content": system_message}, {"role": "user", "content": query_content}]
+                    gen_conf = {"temperature": 0.9, 'max_tokens': 50}
+                    
+                    # Call the chat method
+                    m, tc = mdl.chat(None, history, gen_conf)
+                    if m==True:
+                        embd_passed = True
+                except Exception as e:
+                    msg += f"\nSecond: Fail to access model({llm.llm_name}) using this api key. {str(e)}"
+                
+            else:
+                mdl = EmbeddingModel[factory](req["api_key"], llm.llm_name, base_url=req.get("base_url"))
+                try:
+                    # For embedding models, you might need to use the appropriate method.
+                    arr, tc = mdl.encode(["Test if the api key is available"]) if hasattr(mdl, 'encode') else ([], 0)
+                    if len(arr[0]) == 0 or tc == 0:
+                        raise Exception("Fail")
+                    embd_passed = True
+                except Exception as e:
+                    msg += f"\nFirst: Fail to access embedding model({llm.llm_name}) using this api key. {str(e)}"
+
+        
         elif not chat_passed and llm.model_type == LLMType.CHAT.value:
-            mdl = ChatModel[factory](
-                req["api_key"], llm.llm_name, base_url=req.get("base_url"))
-            try:
-                m, tc = mdl.chat(None, [{"role": "user", "content": "Hello! How are you doing!"}], 
-                                 {"temperature": 0.9,'max_tokens':50})
-                if not tc:
-                    raise Exception(m)
-            except Exception as e:
-                msg += f"\nFail to access model({llm.llm_name}) using this api key." + str(
-                    e)
-            chat_passed = True
+            if llm.llm_name == "Utility-dify-chat":
+                mdl = UtilityAIChat(req["api_key"], llm.llm_name, base_url=req.get("base_url"))
+                try:
+                    # Sending a sample query to chat model
+                    query_content = "What are the specs of the iPhone 13 Pro Max?"
+                    system_message = "Please provide detailed specifications."
+                    history = [{"role": "system", "content": system_message}, {"role": "user", "content": query_content}]
+                    gen_conf = {"temperature": 0.9, 'max_tokens': 50}
+                    
+                    # Call the chat method
+                    m, tc = mdl.chat(None, history, gen_conf)
+                    if m==True:
+                        chat_passed = True
+                except Exception as e:
+                    msg += f"\nSecond: Fail to access model({llm.llm_name}) using this api key. {str(e)}"
+            else:
+                mdl = ChatModel[factory](req["api_key"], llm.llm_name, base_url=req.get("base_url"))
+                try:
+                    # Sending a sample query to chat model
+                    query_content = "What are the specs of the iPhone 13 Pro Max?"
+                    system_message = "Please provide detailed specifications."
+                    history = [{"role": "system", "content": system_message}, {"role": "user", "content": query_content}]
+                    gen_conf = {"temperature": 0.9, 'max_tokens': 50}
+                    
+                    # Call the chat method
+                    m, tc = mdl.chat(None, history, gen_conf)
+                    
+                    if not tc:
+                        raise Exception(m)
+                    chat_passed = True
+                except Exception as e:
+                    msg += f"\nSecond: Fail to access model({llm.llm_name}) using this api key. {str(e)}"
+        
         elif not rerank_passed and llm.model_type == LLMType.RERANK:
-            mdl = RerankModel[factory](
-                req["api_key"], llm.llm_name, base_url=req.get("base_url"))
+            mdl = RerankModel[factory](req["api_key"], llm.llm_name, base_url=req.get("base_url"))
             try:
                 arr, tc = mdl.similarity("What's the weather?", ["Is it sunny today?"])
                 if len(arr) == 0 or tc == 0:
                     raise Exception("Fail")
+                rerank_passed = True
             except Exception as e:
-                msg += f"\nFail to access model({llm.llm_name}) using this api key." + str(
-                    e)
+                msg += f"\nThird: Fail to access model({llm.llm_name}) using this api key. {str(e)}"
             rerank_passed = True
 
     if msg:
@@ -104,6 +144,7 @@ def set_api_key():
     return get_json_result(data=True)
 
 
+
 @manager.route('/add_llm', methods=['POST'])
 @login_required
 @validate_request("llm_factory", "llm_name", "model_type")
@@ -127,6 +168,11 @@ def add_llm():
         api_key = '{' + f'"bedrock_ak": "{req.get("bedrock_ak", "")}", ' \
                         f'"bedrock_sk": "{req.get("bedrock_sk", "")}", ' \
                         f'"bedrock_region": "{req.get("bedrock_region", "")}", ' + '}'
+    elif factory == "UtilityAI":
+        # For UtilityAI, we will use the API key and base URL similar to how it's done for OpenAI
+        llm_name = req["llm_name"]
+        api_key = req["api_key"]
+        api_base = "https://api.dify.ai/v1"
     elif factory == "LocalAI":
         llm_name = req["llm_name"]+"___LocalAI"
         api_key = "xxxxxxxxxxxxxxx"
@@ -142,14 +188,14 @@ def add_llm():
         "llm_factory": factory,
         "model_type": req["model_type"],
         "llm_name": llm_name,
-        "api_base": req.get("api_base", ""),
+        "api_base": api_base if factory in ["UtilityAI", "OpenAI-API-Compatible"] else req.get("api_base", ""),
         "api_key": api_key
     }
 
     msg = ""
     if llm["model_type"] == LLMType.EMBEDDING.value:
         mdl = EmbeddingModel[factory](
-            key=llm['api_key'] if factory in ["VolcEngine", "Bedrock","OpenAI-API-Compatible"] else None,
+            key=llm['api_key'] if factory in ["VolcEngine", "Bedrock", "OpenAI-API-Compatible", "UtilityAI"] else None,
             model_name=llm["llm_name"], 
             base_url=llm["api_base"])
         try:
@@ -160,7 +206,7 @@ def add_llm():
             msg += f"\nFail to access embedding model({llm['llm_name']})." + str(e)
     elif llm["model_type"] == LLMType.CHAT.value:
         mdl = ChatModel[factory](
-            key=llm['api_key'] if factory in ["VolcEngine", "Bedrock","OpenAI-API-Compatible"] else None,
+            key=llm['api_key'] if factory in ["VolcEngine", "Bedrock", "OpenAI-API-Compatible", "UtilityAI"] else None,
             model_name=llm["llm_name"],
             base_url=llm["api_base"]
         )
@@ -185,7 +231,7 @@ def add_llm():
                 e)
     elif llm["model_type"] == LLMType.IMAGE2TEXT.value:
         mdl = CvModel[factory](
-            key=llm["api_key"] if factory in ["OpenAI-API-Compatible"] else None, model_name=llm["llm_name"], base_url=llm["api_base"]
+            key=llm["api_key"] if factory in ["OpenAI-API-Compatible", "UtilityAI"] else None, model_name=llm["llm_name"], base_url=llm["api_base"]
         )
         try:
             img_url = (
@@ -214,6 +260,7 @@ def add_llm():
         TenantLLMService.save(**llm)
 
     return get_json_result(data=True)
+
 
 
 @manager.route('/delete_llm', methods=['POST'])

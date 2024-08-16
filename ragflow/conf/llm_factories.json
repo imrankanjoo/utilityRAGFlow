@@ -1,27 +1,15 @@
 {
     "factory_llm_infos": [
-        {
+      {
             "name": "UtilityAI",
             "logo": "",
             "tags": "Utility,TEXT EMBEDDING,SPEECH2TEXT,MODERATION",
             "status": "1",
             "llm": [
                 {
-                    "llm_name": "Utility-4o",
-                    "tags": "LLM,CHAT,128K",
-                    "max_tokens": 128000,
-                    "model_type": "chat,image2text"
-                },
-                {
-                    "llm_name": "Utility-3.5-turbo",
+                    "llm_name": "Utility-dify-chat",
                     "tags": "LLM,CHAT,4K",
                     "max_tokens": 4096,
-                    "model_type": "chat"
-                },
-                {
-                    "llm_name": "Utility-3.5-turbo-16k-0613",
-                    "tags": "LLM,CHAT,16k",
-                    "max_tokens": 16385,
                     "model_type": "chat"
                 },
                 {
@@ -29,48 +17,6 @@
                     "tags": "TEXT EMBEDDING,8K",
                     "max_tokens": 8191,
                     "model_type": "embedding"
-                },
-                {
-                    "llm_name": "Utility-embedding-3-small",
-                    "tags": "TEXT EMBEDDING,8K",
-                    "max_tokens": 8191,
-                    "model_type": "embedding"
-                },
-                {
-                    "llm_name": "Utility-embedding-3-large",
-                    "tags": "TEXT EMBEDDING,8K",
-                    "max_tokens": 8191,
-                    "model_type": "embedding"
-                },
-                {
-                    "llm_name": "Utility-1",
-                    "tags": "SPEECH2TEXT",
-                    "max_tokens": 26214400,
-                    "model_type": "speech2text"
-                },
-                {
-                    "llm_name": "Unity-4",
-                    "tags": "LLM,CHAT,8K",
-                    "max_tokens": 8191,
-                    "model_type": "chat"
-                },
-                {
-                    "llm_name": "Utility-4-turbo",
-                    "tags": "LLM,CHAT,8K",
-                    "max_tokens": 8191,
-                    "model_type": "chat"
-                },
-                {
-                    "llm_name": "Utility-4-32k",
-                    "tags": "LLM,CHAT,32K",
-                    "max_tokens": 32768,
-                    "model_type": "chat"
-                },
-                {
-                    "llm_name": "Utility-4-vision-preview",
-                    "tags": "LLM,CHAT,IMAGE2TEXT",
-                    "max_tokens": 765,
-                    "model_type": "image2text"
                 }
             ]
         },
